@@ -184,3 +184,35 @@ questionsList.addEventListener("click", (e) => {
     finishBtn.classList.remove("hidden");
   }
 });
+
+function getCurrentEl() {
+  return document.querySelector(`.question-box._${active}`);
+}
+
+function isCurrentAnswered() {
+  const current = document.querySelector(`.question-box._${active}`);
+  return !!current?.querySelector(".selected-option");
+}
+
+arrowRight.addEventListener("click", () => {
+  if (!isCurrentAnswered()) {
+    requireAnswer();
+    return;
+  }
+  function requireAnswer() {
+    const el = getCurrentEl();
+    el?.classList.add("need-answer");
+    setTimeout(() => el?.classList.remove("need-answer"), 360);
+  }
+  if (active < questions.length - 1) {
+    active += 1;
+    showActive();
+  }
+});
+
+arrowLeft.addEventListener("click", () => {
+  if (active > 0) {
+    active -= 1;
+    showActive();
+  }
+});
