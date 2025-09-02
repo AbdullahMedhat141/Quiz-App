@@ -8,12 +8,14 @@ html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 body {
   padding: 4.8rem;
   background-color: #1f2937;
   color: #f9fafb;
+  position: relative;
 }
 
 header {
@@ -24,11 +26,26 @@ header {
   gap: 1.2rem;
   margin-bottom: 2.8rem;
 }
-.progress-box {
+.side-box {
+  position: fixed;
+  right: 50px;
+  top: 40%;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.progress-box {
+  background-color: #f7de1eda;
+  color: #111827;
+  border-radius: 9px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 10px;
   font-size: 1.6rem;
+  margin-bottom: 1.2rem;
 }
 .app-header {
   display: flex;
@@ -48,32 +65,7 @@ header {
   margin-bottom: 2.4rem;
   position: relative;
 }
-.arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  border-radius: 50%;
-  padding: 12px;
-  font-size: 1.25rem;
-  cursor: pointer;
-  background-color: #2563eb;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s, transform 0.2s;
-}
 
-.arrow:hover {
-  background-color: #1d4ed8;
-  transform: translateY(-50%) scale(1.1);
-}
-
-.arrow-L {
-  left: -60px;
-}
-.arrow-R {
-  right: -60px;
-}
 .flex {
   display: flex;
 }
@@ -136,6 +128,7 @@ header {
   background-color: #2563eb;
   transition: all linear 0.3s;
 }
+
 .btn:hover {
   scale: 1.05;
   background-color: #1d4ed8;
@@ -143,12 +136,6 @@ header {
 
 .hidden {
   display: none;
-}
-
-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .quiz-result {
@@ -173,43 +160,4 @@ footer {
 }
 .fail-status {
   background-color: #ef4444;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.question-box.enter {
-  animation: fadeUp 280ms ease-out both;
-  will-change: opacity, transform;
-}
-
-@keyframes shakeX {
-  10%,
-  90% {
-    transform: translateX(-2px);
-  }
-  20%,
-  80% {
-    transform: translateX(3px);
-  }
-  30%,
-  50%,
-  70% {
-    transform: translateX(-4px);
-  }
-  40%,
-  60% {
-    transform: translateX(4px);
-  }
-}
-.need-answer {
-  animation: shakeX 350ms ease;
 }

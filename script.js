@@ -3,18 +3,17 @@
 import { questions } from "./assets/questions.js";
 
 const startBtn = document.querySelector(".start");
+const sideBox = document.querySelector(".side-box");
+const progressBox = document.querySelector(".progress-box");
 const progressBar = document.querySelector(".progress");
 const progressLength = document.querySelector(".progress-length");
 const countEl = document.querySelector(".count");
 const finishBtn = document.querySelector(".finish");
 const restartBtn = document.querySelector(".restart");
 const questionsList = document.querySelector(".questions-list");
-const footer = document.querySelector(".footer");
 const quizResult = document.querySelector(".quiz-result");
 const scoreEl = document.querySelector(".score");
 const statusEl = document.querySelector(".status");
-const arrowRight = document.querySelector(".arrow-R");
-const arrowLeft = document.querySelector(".arrow-L");
 
 class Question {
   #answer;
@@ -33,29 +32,22 @@ class Question {
   }
 }
 
-let active = 0;
+let progress = 0;
 let count = 0;
 let score = 0;
 let status = "";
 
 function startApp() {
-  // reset state
-  active = 0;
   count = 0;
   score = 0;
   status = "";
 
-  // UI reset
   count = 0;
   progressBar.max = questions.length;
   progressLength.textContent = `/${questions.length}`;
   progressBar.value = count;
   countEl.textContent = count;
 
-  arrowLeft.classList.add("hidden");
-  arrowRight.classList.remove("hidden");
-
-  questionsList.querySelectorAll(".question-box").forEach((el) => el.remove());
   questions.forEach((q, i) => {
     const qObj = new Question(
       i,
@@ -66,37 +58,8 @@ function startApp() {
     );
     const el = createQuestionEl(qObj);
     el.classList.add("question-box", `_${i}`);
-    if (i !== 0) el.classList.add("hidden");
     questionsList.append(el);
   });
-
-  showActive();
-}
-
-function showActive() {
-  document
-    .querySelectorAll(".question-box")
-    .forEach((el) => el.classList.add("hidden"));
-
-  const currentEl = document.querySelector(`.question-box._${active}`);
-  if (!currentEl) return;
-
-  currentEl.classList.remove("hidden");
-
-  if (!currentEl.dataset.mounted) {
-    currentEl.classList.add("enter");
-    currentEl.addEventListener(
-      "animationend",
-      () => {
-        currentEl.classList.remove("enter");
-      },
-      { once: true }
-    );
-    currentEl.dataset.mounted = "true";
-  }
-
-  arrowLeft.classList.toggle("hidden", active === 0);
-  arrowRight.classList.toggle("hidden", active === questions.length - 1);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -107,12 +70,14 @@ startBtn.addEventListener("click", () => {
   startBtn.classList.add("hidden");
   questionsList.classList.remove("hidden");
   questionsList.classList.add("flex");
-  footer.classList.remove("hidden");
+  sideBox.classList.remove("hidden");
+  progressBox.classList.remove("hidden");
+  quizResult.classList.add("flex");
 });
 
 function createQuestionEl(q) {
   const questionEl = document.createElement("div");
-  questionEl.classList.add("question-box", "hidden", `_${q.id}`);
+  questionEl.classList.add("question-box", `_${q.id}`);
   questionEl.dataset.qid = String(q.id);
 
   // header
@@ -178,54 +143,20 @@ questionsList.addEventListener("click", (e) => {
   });
   progressBar.value = count;
   countEl.textContent = count;
+  progress = count;
   count = 0;
-  const currentEl = getCurrentEl();
-  if (Number(currentEl.dataset.qid) === questions.length - 1) {
+  if (progress === 10) {
     finishBtn.classList.remove("hidden");
   }
 });
 
-function getCurrentEl() {
-  return document.querySelector(`.question-box._${active}`);
-}
-
-function isCurrentAnswered() {
-  const current = document.querySelector(`.question-box._${active}`);
-  return !!current?.querySelector(".selected-option");
-}
-
-arrowRight.addEventListener("click", () => {
-  if (!isCurrentAnswered()) {
-    requireAnswer();
-    return;
-  }
-  function requireAnswer() {
-    const el = getCurrentEl();
-    el?.classList.add("need-answer");
-    setTimeout(() => el?.classList.remove("need-answer"), 360);
-  }
-  if (active < questions.length - 1) {
-    active += 1;
-    showActive();
-  }
-});
-
-arrowLeft.addEventListener("click", () => {
-  if (active > 0) {
-    active -= 1;
-    showActive();
-  }
-});
-
 finishBtn.addEventListener("click", () => {
-  // UI: show result area, lock choices
   quizResult.classList.remove("hidden");
   quizResult.classList.add("flex");
   questionsList.querySelectorAll(".question-box .option").forEach((btn) => {
     btn.disabled = true;
   });
 
-  // 1) Reset and compute score safely
   score = 0;
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
 
@@ -235,26 +166,21 @@ finishBtn.addEventListener("click", () => {
     }
   });
 
-  // 2) Status via percentage (robust for any quiz size)
   const percent = Math.round((score / totalPoints) * 100);
   status = percent >= 70 ? "Pass" : "Fail";
 
-  // 3) Render totals
   statusEl.classList.remove("pass-status", "fail-status");
   statusEl.classList.add(status === "Pass" ? "pass-status" : "fail-status");
-  scoreEl.textContent = score; // or `${percent}%` if you prefer
+  scoreEl.textContent = score;
   statusEl.textContent = status;
 
-  // 4) Hide/Show action buttons
   finishBtn.classList.add("hidden");
   restartBtn.classList.remove("hidden");
 
-  // 5) Final reveal per question (correct/wrong + optional points)
   questions.forEach((q, qid) => {
     const questionEl = questionsList.querySelector(`.question-box._${qid}`);
     if (!questionEl) return;
 
-    // Clear old state
     questionEl.querySelectorAll(".option").forEach((btn) => {
       btn.classList.remove("correct-option", "wrong-option");
     });
@@ -272,7 +198,6 @@ finishBtn.addEventListener("click", () => {
       correctBtn.classList.add("correct-option");
     }
 
-    // (Optional) Per-question points text
     const slot = questionEl.querySelector(".collected-points");
     const questionPoints = questionEl.querySelector(".question-points");
     questionPoints.classList.add("hidden");

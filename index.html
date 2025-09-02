@@ -18,25 +18,27 @@
       <div class="btn-box">
         <button class="btn start">Start quiz</button>
       </div>
-      <section class="hidden questions-list">
-        <button class="hidden arrow arrow-R">→</button>
-        <button class="hidden arrow arrow-L">←</button>
-        <div class="progress-box">
+      <div class="hidden questions-list"></div>
+      <div class="hidden side-box">
+        <div class="hidden progress-box">
+          <p>Your Progress:</p>
           <progress class="progress"></progress>
           <p>
             <span class="count"></span><span class="progress-length"></span>
           </p>
         </div>
-      </section>
+        <div class="hidden quiz-result">
+          <p>Score: <span class="score"></span>%</p>
+          <p class="status">Pass</p>
+        </div>
+        <button class="hidden btn finish">Finish</button>
+        <button class="hidden btn restart">Restart</button>
+      </div>
     </main>
-    <footer class="hidden footer">
+    <!-- <footer class="hidden footer">
       <button class="hidden btn finish">Finish</button>
       <button class="hidden btn restart">Restart</button>
-      <div class="hidden quiz-result">
-        <p>Score: <span class="score"></span>%</p>
-        <p class="status">Pass</p>
-      </div>
-    </footer>
+    </footer> -->
 
     <script type="module" src="script.js"></script>
   </body>
