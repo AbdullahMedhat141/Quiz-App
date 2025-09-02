@@ -7,6 +7,37 @@
     <title>Quiz App</title>
   </head>
   <body>
+    <header>
+      <div class="app-header">
+        <img src="JS.jpg" alt="Javascript" class="logo" />
+        <h1>Quiz App</h1>
+      </div>
+      <p>Welcome to JS Quiz App, Your way to master JS 💪</p>
+    </header>
+    <main>
+      <div class="btn-box">
+        <button class="btn start">Start quiz</button>
+      </div>
+      <section class="hidden questions-list">
+        <button class="hidden arrow arrow-R">→</button>
+        <button class="hidden arrow arrow-L">←</button>
+        <div class="progress-box">
+          <progress class="progress"></progress>
+          <p>
+            <span class="count"></span><span class="progress-length"></span>
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer class="hidden footer">
+      <button class="hidden btn finish">Finish</button>
+      <button class="hidden btn restart">Restart</button>
+      <div class="hidden quiz-result">
+        <p>Score: <span class="score"></span>%</p>
+        <p class="status">Pass</p>
+      </div>
+    </footer>
+
     <script type="module" src="script.js"></script>
   </body>
 </html>
