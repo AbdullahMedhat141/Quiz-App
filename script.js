@@ -288,3 +288,19 @@ finishBtn.addEventListener("click", () => {
     }
   });
 });
+
+restartBtn.addEventListener("click", () => {
+  questions.map((q) => {
+    q.setAnswer(null);
+  });
+  const oldQuestions = document.querySelectorAll(".question-box");
+  for (let i = 0; i < oldQuestions.length; i++) {
+    oldQuestions[i].remove();
+  }
+  restartBtn.classList.add("hidden");
+  quizResult.classList.add("hidden");
+  finishBtn.classList.remove("hidden");
+  startApp();
+  finishBtn.classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
