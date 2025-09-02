@@ -216,3 +216,75 @@ arrowLeft.addEventListener("click", () => {
     showActive();
   }
 });
+
+finishBtn.addEventListener("click", () => {
+  // UI: show result area, lock choices
+  quizResult.classList.remove("hidden");
+  quizResult.classList.add("flex");
+  questionsList.querySelectorAll(".question-box .option").forEach((btn) => {
+    btn.disabled = true;
+  });
+
+  // 1) Reset and compute score safely
+  score = 0;
+  const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
+
+  questions.forEach((q) => {
+    if (q.getAnswer() !== null && q.correctAnswer === q.getAnswer()) {
+      score += q.points;
+    }
+  });
+
+  // 2) Status via percentage (robust for any quiz size)
+  const percent = Math.round((score / totalPoints) * 100);
+  status = percent >= 70 ? "Pass" : "Fail";
+
+  // 3) Render totals
+  statusEl.classList.remove("pass-status", "fail-status");
+  statusEl.classList.add(status === "Pass" ? "pass-status" : "fail-status");
+  scoreEl.textContent = score; // or `${percent}%` if you prefer
+  statusEl.textContent = status;
+
+  // 4) Hide/Show action buttons
+  finishBtn.classList.add("hidden");
+  restartBtn.classList.remove("hidden");
+
+  // 5) Final reveal per question (correct/wrong + optional points)
+  questions.forEach((q, qid) => {
+    const questionEl = questionsList.querySelector(`.question-box._${qid}`);
+    if (!questionEl) return;
+
+    // Clear old state
+    questionEl.querySelectorAll(".option").forEach((btn) => {
+      btn.classList.remove("selected-option", "correct-option", "wrong-option");
+    });
+
+    const chosenBtn =
+      q.getAnswer() !== null
+        ? questionEl.querySelector(`.option._${q.getAnswer()}`)
+        : null;
+    const correctBtn = questionEl.querySelector(`.option._${q.correctAnswer}`);
+
+    if (chosenBtn && String(q.getAnswer()) !== String(q.correctAnswer)) {
+      chosenBtn.classList.add("wrong-option");
+    }
+    if (correctBtn) {
+      correctBtn.classList.add("correct-option");
+    }
+
+    // (Optional) Per-question points text
+    const slot = questionEl.querySelector(".collected-points");
+    const questionPoints = questionEl.querySelector(".question-points");
+    questionPoints.classList.add("hidden");
+    if (slot) {
+      const got =
+        q.getAnswer() !== null && q.getAnswer() === q.correctAnswer
+          ? q.points
+          : 0;
+      slot.textContent = `${got}/${q.points}`;
+      slot.classList.remove("hidden");
+      slot.style.fontWeight = "bold";
+      slot.style.color = got > 0 ? "#10B981" : "#EF4444";
+    }
+  });
+});
