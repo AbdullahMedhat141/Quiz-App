@@ -152,3 +152,35 @@ function createQuestionEl(q) {
   questionEl.append(questionHeader, questionText, optionsList);
   return questionEl;
 }
+
+questionsList.addEventListener("click", (e) => {
+  const option = e.target.closest(".option");
+  if (!option) return;
+
+  const questionEl = option.closest(".question-box");
+  if (!questionEl) return;
+
+  const qid = Number(questionEl.dataset.qid);
+  const idx = Number(option.dataset.idx);
+
+  questionEl
+    .querySelectorAll(".option")
+    .forEach((btn) => btn.classList.remove("selected-option"));
+
+  option.classList.add("selected-option");
+
+  const questionObj = questions[qid];
+  if (questionObj && typeof questionObj.setAnswer === "function") {
+    questionObj.setAnswer(idx);
+  }
+  questions.map((q) => {
+    if (q.getAnswer() !== null) count++;
+  });
+  progressBar.value = count;
+  countEl.textContent = count;
+  count = 0;
+  const currentEl = getCurrentEl();
+  if (Number(currentEl.dataset.qid) === questions.length - 1) {
+    finishBtn.classList.remove("hidden");
+  }
+});
