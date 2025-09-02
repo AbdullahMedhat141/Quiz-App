@@ -256,7 +256,7 @@ finishBtn.addEventListener("click", () => {
 
     // Clear old state
     questionEl.querySelectorAll(".option").forEach((btn) => {
-      btn.classList.remove("selected-option", "correct-option", "wrong-option");
+      btn.classList.remove("correct-option", "wrong-option");
     });
 
     const chosenBtn =
