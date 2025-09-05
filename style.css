@@ -61,9 +61,7 @@ header {
 }
 .questions-list {
   flex-direction: column;
-  gap: 1rem;
   margin-bottom: 2.4rem;
-  position: relative;
 }
 
 .flex {
@@ -75,6 +73,7 @@ header {
   padding: 1rem;
   border-radius: 9px;
   width: 500px;
+  margin-bottom: 1rem;
 }
 .question-head {
   display: flex;
@@ -145,19 +144,19 @@ header {
   font-size: 1.2rem;
 }
 .score,
-.status {
+.result {
   font-weight: bold;
 }
 
-.status {
+.result {
   color: white;
   border-radius: 9px;
   padding: 0.6rem;
   text-align: center;
 }
-.pass-status {
+.pass {
   background-color: #10b981;
 }
-.fail-status {
+.fail {
   background-color: #ef4444;
 }
