@@ -15,6 +15,9 @@ const quizResult = document.querySelector(".quiz-result");
 const scoreEl = document.querySelector(".score");
 const resultEl = document.querySelector(".result");
 
+let quiz;
+let answers = [];
+
 class Quiz {
   constructor(questions) {
     this.questions = questions;
@@ -24,73 +27,37 @@ class Quiz {
   }
   startQuiz() {
     reset();
-
-    progressBar.max = questions.length;
-    progressLength.textContent = `/${questions.length}`;
-    progressBar.value = Number(quiz.progress) || 0;
-    countEl.textContent = Number(quiz.progress) || 0;
-
-    questions.forEach((q, i) => {
-      const qObj = new Question(
-        i,
-        q.question,
-        q.options,
-        q.correctAnswer,
-        q.points
-      );
-      this.questions.push(qObj);
-      const el = createQuestionEl(qObj);
-      el.classList.add("question-box", `_${i}`);
-      questionsList.append(el);
-    });
+    render();
   }
   finishQuiz() {
-    quiz.status = "finished";
+    this.status = "finished";
+
     const quizStatus = statusStorage.getValue();
-    quizStatus.status = quiz.status;
+    quizStatus.status = this.status;
 
-    quiz.score = 0;
-    const totalPoints = quiz.questions.reduce((sum, q) => sum + q.points, 0);
-
-    quiz.questions.forEach((q) => {
+    this.score = 0;
+    const totalPoints = this.questions.reduce((sum, q) => sum + q.points, 0);
+    this.questions.forEach((q) => {
       if (q.getAnswer() !== null && q.correctAnswer === q.getAnswer()) {
-        quiz.score += q.points;
+        this.score += q.points;
       }
     });
-
-    const percent = Math.round((quiz.score / totalPoints) * 100);
-
+    const percent = Math.round((this.score / totalPoints) * 100);
     quizStatus.score = percent;
-    quiz.result = percent >= 70 ? "Pass" : "Fail";
-
-    quizStatus.result = quiz.result;
-
+    this.result = percent >= 70 ? "Pass" : "Fail";
+    quizStatus.result = this.result;
     statusStorage.setValue(quizStatus);
-
-    resultEl.classList.remove("pass", "fail");
-    resultEl.classList.add(quiz.result === "Pass" ? "pass" : "fail");
-    scoreEl.textContent = percent;
-    resultEl.textContent = quiz.result;
-
-    finishBtn.classList.add("hidden");
-    restartBtn.classList.remove("hidden");
+    return percent;
   }
   restartQuiz() {
-    quiz.questions.map((q) => {
+    this.questions.map((q) => {
       q.setAnswer(null);
     });
     const oldQuestions = document.querySelectorAll(".question-box");
     for (let i = 0; i < oldQuestions.length; i++) {
       oldQuestions[i].remove();
     }
-    restartBtn.classList.add("hidden");
-    quizResult.classList.add("hidden");
-    finishBtn.classList.remove("hidden");
-    finishBtn.classList.add("hidden");
-    startBtn.classList.remove("hidden");
-    questionsList.classList.add("hidden");
-    progressBox.classList.add("hidden");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    answers.length = 0;
   }
 }
 
@@ -113,9 +80,10 @@ class Question {
   constructor(id, question, options, correctAnswer, points) {
     this.id = id;
     this.question = question;
-    this.options = [...options];
+    this.options = options;
     this.correctAnswer = correctAnswer;
-    this.points = points;
+    this.points = points ?? 0;
+    this.type = this.type || "MCQ";
   }
   setAnswer(i) {
     this.#answer = i;
@@ -123,12 +91,29 @@ class Question {
   getAnswer() {
     return this.#answer;
   }
+  isCorrect() {
+    if (this.type === "MCQ") return this.getAnswer() === this.correctAnswer;
+    if (this.type === "TF") return this.getAnswer() === this.correctAnswer;
+    return false;
+  }
+}
+
+class MultipleChoiceQuestion extends Question {
+  constructor(id, question, options, correctIndex, points) {
+    super(id, question, options, correctIndex, points);
+    this.type = "MCQ";
+  }
+}
+
+class TrueFalseQuestion extends Question {
+  constructor(id, question, correctTF, points) {
+    super(id, question, ["True", "False"], correctTF, points);
+    this.type = "TF";
+  }
 }
 
 progressBar.max = questions.length;
 progressLength.textContent = `/${questions.length}`;
-
-let quiz;
 
 let answersStorage = new Storage(
   "answersList",
@@ -144,28 +129,12 @@ let quizStatusObj = statusStorage.getValue();
 if (answersStorage.getValue().length !== 0) {
   quiz = new Quiz([]);
 
-  let answers = answersStorage.getValue();
+  answers = answersStorage.getValue();
   questionsList.classList.remove("hidden");
   startBtn.classList.add("hidden");
   sideBox.classList.remove("hidden");
 
-  questions.forEach((q, i) => {
-    const qObj = new Question(
-      i,
-      q.question,
-      q.options,
-      q.correctAnswer,
-      q.points
-    );
-    qObj.setAnswer(answers[i]);
-    quiz.questions.push(qObj);
-    const el = createQuestionEl(qObj);
-    el.classList.add("question-box", `_${i}`);
-    el.querySelectorAll(".option").forEach((o, j) => {
-      j === answers[i] && o.classList.add("selected-option");
-    });
-    questionsList.append(el);
-  });
+  render();
 
   quiz.progress = Number(quizStatusObj.progress) || 0;
   quiz.score = Number(quizStatusObj.score) || 0;
@@ -191,6 +160,8 @@ if (answersStorage.getValue().length !== 0) {
 }
 
 startBtn.addEventListener("click", () => {
+  quiz = new Quiz([]);
+
   startBtn.classList.add("hidden");
   questionsList.classList.remove("hidden");
   questionsList.classList.add("flex");
@@ -198,7 +169,11 @@ startBtn.addEventListener("click", () => {
   progressBox.classList.remove("hidden");
   quizResult.classList.add("flex");
 
-  quiz = new Quiz([]);
+  progressBar.max = questions.length;
+  progressLength.textContent = `/${questions.length}`;
+  progressBar.value = Number(quiz.progress) || 0;
+  countEl.textContent = Number(quiz.progress) || 0;
+
   quiz.startQuiz();
 });
 
@@ -248,12 +223,27 @@ questionsList.addEventListener("click", (e) => {
 });
 
 finishBtn.addEventListener("click", () => {
-  quiz.finishQuiz();
+  const percent = quiz.finishQuiz();
+  resultEl.classList.remove("pass", "fail");
+  resultEl.classList.add(quiz.result === "Pass" ? "pass" : "fail");
+  scoreEl.textContent = percent;
+  resultEl.textContent = quiz.result;
+
+  finishBtn.classList.add("hidden");
+  restartBtn.classList.remove("hidden");
   showCorrectAnswers();
 });
 
 restartBtn.addEventListener("click", () => {
   quiz.restartQuiz();
+  restartBtn.classList.add("hidden");
+  quizResult.classList.add("hidden");
+  finishBtn.classList.remove("hidden");
+  finishBtn.classList.add("hidden");
+  startBtn.classList.remove("hidden");
+  questionsList.classList.add("hidden");
+  progressBox.classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
   reset();
 });
 
@@ -303,25 +293,39 @@ function createQuestionEl(q) {
 function showCorrectAnswers() {
   quizResult.classList.remove("hidden");
   quizResult.classList.add("flex");
+
   questionsList.querySelectorAll(".question-box .option").forEach((btn) => {
     btn.disabled = true;
   });
+
+  const tfToIdx = (v) =>
+    v === "T" ? 0 : v === "F" ? 1 : typeof v === "number" ? v : null;
 
   quiz.questions.forEach((q, qid) => {
     const questionEl = questionsList.querySelector(`.question-box._${qid}`);
     if (!questionEl) return;
 
-    questionEl.querySelectorAll(".option").forEach((btn) => {
-      btn.classList.remove("correct-option", "wrong-option");
-    });
+    const buttons = [...questionEl.querySelectorAll(".option")];
+    buttons.forEach((b) =>
+      b.classList.remove("correct-option", "wrong-option")
+    );
 
-    const chosenBtn =
-      q.getAnswer() !== null
-        ? questionEl.querySelector(`.option._${q.getAnswer()}`)
-        : null;
-    const correctBtn = questionEl.querySelector(`.option._${q.correctAnswer}`);
+    const saved = q.getAnswer();
+    let chosenIdx = null;
+    let correctIdx = null;
 
-    if (chosenBtn && String(q.getAnswer()) !== String(q.correctAnswer)) {
+    if (q.type === "MCQ") {
+      chosenIdx = typeof saved === "number" ? saved : null;
+      correctIdx = typeof q.correctAnswer === "number" ? q.correctAnswer : null;
+    } else {
+      chosenIdx = tfToIdx(saved);
+      correctIdx = tfToIdx(q.correctAnswer);
+    }
+
+    const chosenBtn = chosenIdx != null ? buttons[chosenIdx] : null;
+    const correctBtn = correctIdx != null ? buttons[correctIdx] : null;
+
+    if (chosenBtn && correctBtn && chosenIdx !== correctIdx) {
       chosenBtn.classList.add("wrong-option");
     }
     if (correctBtn) {
@@ -330,10 +334,11 @@ function showCorrectAnswers() {
 
     const slot = questionEl.querySelector(".collected-points");
     const questionPoints = questionEl.querySelector(".question-points");
-    questionPoints.classList.add("hidden");
+    if (questionPoints) questionPoints.classList.add("hidden");
+
     if (slot) {
       const got =
-        q.getAnswer() !== null && q.getAnswer() === q.correctAnswer
+        chosenIdx != null && correctIdx != null && chosenIdx === correctIdx
           ? q.points
           : 0;
       slot.textContent = `${got}/${q.points}`;
@@ -359,4 +364,49 @@ function reset() {
 
   answersStorage.setValue([]);
   statusStorage.setValue(quizStatusObj);
+}
+
+function render() {
+  const mapTFToIdx = (v) => (v === "T" ? 0 : v === "F" ? 1 : null);
+
+  questions.forEach((q, i) => {
+    let qObj;
+    if (q.type === "TF") {
+      qObj = new TrueFalseQuestion(i, q.question, q.correctAnswer, q.points);
+    } else {
+      qObj = new MultipleChoiceQuestion(
+        i,
+        q.question,
+        q.options,
+        q.correctAnswer,
+        q.points
+      );
+    }
+    const saved = answers[i];
+    if (saved !== undefined && saved !== null) {
+      qObj.setAnswer(saved);
+    }
+
+    quiz.questions.push(qObj);
+
+    const el = createQuestionEl(qObj);
+    el.classList.add("question-box", `_${i}`);
+    el.dataset.qid = i;
+
+    let selectedIdx = null;
+    if (qObj.type === "MCQ") {
+      if (typeof saved === "number") selectedIdx = saved;
+    } else {
+      if (typeof saved === "string") selectedIdx = mapTFToIdx(saved);
+      else if (typeof saved === "number") selectedIdx = saved;
+    }
+
+    if (selectedIdx !== null && selectedIdx !== undefined) {
+      el.querySelectorAll(".option").forEach((o, j) => {
+        if (j === selectedIdx) o.classList.add("selected-option");
+      });
+    }
+
+    questionsList.append(el);
+  });
 }
