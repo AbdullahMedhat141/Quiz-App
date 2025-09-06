@@ -26,7 +26,7 @@ class Quiz {
     this.status = "active";
   }
   startQuiz() {
-    reset();
+    initialize();
     render();
   }
   finishQuiz() {
@@ -244,7 +244,7 @@ restartBtn.addEventListener("click", () => {
   questionsList.classList.add("hidden");
   progressBox.classList.add("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  reset();
+  initialize();
 });
 
 function createQuestionEl(q) {
@@ -349,7 +349,7 @@ function showCorrectAnswers() {
   });
 }
 
-function reset() {
+function initialize() {
   quiz.progress = 0;
   quiz.score = 0;
   quiz.result = "";
